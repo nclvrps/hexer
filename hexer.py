@@ -13,9 +13,13 @@ import json
 import shlex
 from typing import FrozenSet, Sequence, Callable
 
-# importing readline lets arrow keys etc. work in the input line
+# Importing readline lets arrow keys etc. work in the input line
+# Usually not available on Windows
 # pylint: disable-next=unused-import
-import readline
+try:
+    import readline
+except ModuleNotFoundError:
+    pass
 
 base_opts = None
 menu = None
