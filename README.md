@@ -1,14 +1,14 @@
 **What it does**
 
-`hexer.py` lets you practice doing arithmetic operations without a calculator. Obviously this is a useless skill in the modern world.
+`hexer.py` lets you practice doing arithmetic operations without a calculator.
 
-`hexer.py` is a command-line Python script that runs in a terminal. It doesn't use any graphical user interface.
+It does not teach you how to do arithmetic, it just lets you practice and drill.
 
-This program does not teach you how to do arithmetic by hand or in your head. It just lets you practice and drill.
+It is a command-line Python script that runs in a terminal. There is no graphical user interface.
 
 `hexer.py` generates a random pair of numbers to be multiplied, added, subtracted, or divided, and then awaits your input. You can type in the answer that you calculated or guessed, or simply hit Enter. You'll see if your answer was right, and then a new pair of numbers appears and again awaits your input. The program loops indefinitely until you interrupt it with Ctrl-C.
 
-**Available choices**
+**Functionality**
 
 By default, the program does multiplication, but you can specify one of the other three arithmetic operations.
 
