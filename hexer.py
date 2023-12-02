@@ -229,7 +229,7 @@ base_parser.add_argument('-x', '--hex', action='store_true',
                     help='same as -b 16 (and overrides any -b setting in the command line)')
 
 # use "parents" argument so that -h help gives expected results
-parser = argparse.ArgumentParser(parents=[base_parser], description='Prints random operands (in base 10 by default, or hex, binary, base 4, or octal) to be added, subtracted, multiplied, or divided. Awaits input. Type in the answer to test your arithmetic skills, or just hit Enter to see the answer. Appending a backslash to your answer means that the digits are to be read in reverse order of what you typed, i.e., the order in which they are calculated. Usually there are two operands, but addition can have more. For division, operands are chosen so that there is never a remainder.')
+parser = argparse.ArgumentParser(parents=[base_parser], description='Prints random operands (in base 10 by default, or hex, binary, base 4, or octal) to be added, subtracted, multiplied, or divided. Awaits input. Type in the answer to test your arithmetic skills, or just hit Enter to see the answer. Appending a comma to your answer means that the digits are to be read in reverse order of what you typed, i.e., the order in which they are calculated. Usually there are two operands, but addition can have more. For division, operands are chosen so that there is never a remainder.')
 
 parser.add_argument('-o', '--op', action='store', type=arithmetic_operation,
                     help='operation to perform: \'*\' or x or . for multiplication, + for addition, - for subtraction, / or ÷ for division; ++ (or +++ or ...) for addition with 3 (or 4 or more, max 52) addends. Default is multiplication')
@@ -401,15 +401,19 @@ while True:
             continue
         else:
             try:
-                # hack: read a number backwards if a \ is appended to it
-                ls = line.rsplit('/')
+                # Ignore anything that comes before a period.
+                # This lets you change your mind and try again
+                # without erasing your previous attempt which might have some correct digits.
+                ls = line.rsplit('.')
                 if len(ls) > 1:
                     if ls[-1] == '':
                         line = ls[-2]
                     else:
                         line = ls[-1]
 
-                ls = line.rsplit('\\')
+                # Read a number in reverse digit order if a comma is appended to it.
+                # A backslash would be more intuitive, but not readily available on all language keyboard layouts.
+                ls = line.rsplit(',')
                 if len(ls) > 1:
                     if ls[-1] == '':
                         line = ls[-2][::-1]
