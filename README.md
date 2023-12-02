@@ -94,7 +94,7 @@ Finally we return to base 10, and use `-o /` to specify division.
 * The program always provides numbers that divide evenly with no remainder
 
 ```
-./hexer.py -o /
+python ./hexer.py -o /
        10
     ÷   2
 5
