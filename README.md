@@ -40,11 +40,9 @@ Various command line options are available, and you can get standard argparse-st
 
 `python ./hexer.py --help` (on Windows)
 
-When the program runs without any command line options, it drills you on the traditional "times table".
-
 **Some sample sessions**
 
-First we run it with no options to drill the traditional times table.
+First we run it with no command-line options to drill the traditional times-table (multiplication of one-digit base-10 numbers).
 
 ```
 python ./hexer.py
