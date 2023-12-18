@@ -43,45 +43,26 @@ def digit_set(digits: str) -> FrozenSet:
     raise argparse.ArgumentTypeError(msg)
 
 
-# all operators other than add, sub, mul, floordiv
-non_arithmetic_operators = [operator.add,
-       operator.abs, operator.and_, operator.attrgetter,
-       operator.concat, operator.contains, operator.countOf,
-       operator.delitem, operator.eq, operator.ge, operator.getitem, operator.gt, operator.iadd, operator.iand,
-       operator.iconcat, operator.ifloordiv, operator.ilshift, operator.imatmul, operator.imod, operator.imul,
-       operator.index, operator.indexOf, operator.inv, operator.invert, operator.ior, operator.ipow, operator.irshift,
-       operator.is_, operator.is_not, operator.isub, operator.itemgetter, operator.itruediv, operator.ixor, operator.le,
-       operator.length_hint, operator.lshift, operator.lt, operator.matmul, operator.methodcaller, operator.mod,
-       operator.ne, operator.neg, operator.not_, operator.or_, operator.pos, operator.pow, operator.rshift,
-       operator.setitem, operator.truediv, operator.truth, operator.xor]
-
-def arithmetic_operation(op_str: str) -> Callable:
+def arithmetic_operation(op_str: str) -> (Callable, int):
     if op_str in ('*', '.', '×', 'x'):
-        return operator.mul
-    # Kludge for allowing more than 2 operands in case of addition, see below
-    #elif op_str == '+':
-    #    return operator.add
+        return operator.mul, 2
     elif op_str in ('-', '\u2212'):
-        return operator.sub
+        return operator.sub, 2
     elif op_str in ('/', '÷'):
-        return operator.floordiv
+        return operator.floordiv, 2
     # Allow +, ++, +++ for multiple operands for addition only
-    # This is a kludge: will be converted to operator.add elsewhere in this program
     elif op_str.strip('+') == '':
-        if len(op_str) - 1 < len(non_arithmetic_operators):
-            return non_arithmetic_operators[len(op_str) - 1]
-        else:
-            msg = f"number of + exceeds maximum of {len(non_arithmetic_operators)}: '{op_str}'"
-            raise argparse.ArgumentTypeError(msg)
+        return operator.add, len(op_str) + 1
 
     msg = f"invalid operation: '{op_str}'"
     raise argparse.ArgumentTypeError(msg)
 
 
-table = str.maketrans({ "0":"00", "1":"01", "2":"02", "3":"03",
-                        "4":"10", "5":"11", "6":"12", "7":"13",
-                        "8":"20", "9":"21", "a":"22", "b":"23",
-                        "c":"30", "d":"31", "e":"32", "f":"33" })
+base4_table = str.maketrans({
+    "0":"00", "1":"01", "2":"02", "3":"03",
+    "4":"10", "5":"11", "6":"12", "7":"13",
+    "8":"20", "9":"21", "a":"22", "b":"23",
+    "c":"30", "d":"31", "e":"32", "f":"33" })
 
 def hex_no0x(num: int) -> str:
     """
@@ -97,7 +78,7 @@ def hex_no0x(num: int) -> str:
     elif base_opts.base == 8:
         digitstr = f'{num:o}'
     elif base_opts.base == 4:
-        digitstr = f'{num:x}'.translate(table).lstrip('0')
+        digitstr = f'{num:x}'.translate(base4_table).lstrip('0')
         if digitstr == "":
             digitstr = '0'
     elif base_opts.base == 2:
@@ -177,7 +158,11 @@ def do_the_parser(args):
     opts.length = max(opts.length, 1)
 
     if opts.op is None:
-        opts.op = operator.mul
+        opts.op = (operator.mul, 2)
+
+    # split up the tuple returned by argparse type-checking callable function
+    opts.num_operands = opts.op[1]
+    opts.op = opts.op[0]
 
     if len(opts.allowed_digits) == 0:
         if not opts.allow_trivial and base_opts.base > 4 and operator.sub != opts.op:
@@ -189,13 +174,6 @@ def do_the_parser(args):
     opts.allowed_digits |= opts.required_digits
 
     opts.allowed_digits &= set_of_all_digits
-
-    # Kludge for allowing more than 2 operands in case of addition
-    if opts.op not in (operator.sub, operator.mul, operator.floordiv):
-        opts.num_operands = non_arithmetic_operators.index(opts.op) + 2
-        opts.op = operator.add
-    else:
-        opts.num_operands = 2
 
     return base_opts, opts
 
@@ -226,7 +204,7 @@ base_parser.add_argument('-t', '--menu-item', default=None, action='store',
 base_parser.add_argument('-b', '--base', default=10, type=int, choices=[2, 4, 8, 10, 16],
                     help='number base (default is 10)')
 base_parser.add_argument('-x', '--hex', action='store_true',
-                    help='same as -b 16 (and overrides any -b setting in the command line)')
+                    help='same as -b 16')
 
 # use "parents" argument so that -h help gives expected results
 parser = argparse.ArgumentParser(parents=[base_parser], description='Prints random operands (in base 10 by default, or hex, binary, base 4, or octal) to be added, subtracted, multiplied, or divided. Awaits input. Type in the answer to test your arithmetic skills, or just hit Enter to see the answer. Appending a comma to your answer means that the digits are to be read in reverse order of what you typed, i.e., the order in which they are calculated. Usually there are two operands, but addition can have more. For division, operands are chosen so that there is never a remainder.')
@@ -400,32 +378,28 @@ while True:
             base_opts, opts = do_the_parser(args)
             continue
         else:
-            try:
-                # Ignore anything that comes before a period.
-                # This lets you change your mind and try again
-                # without erasing your previous attempt which might have some correct digits.
-                ls = line.rsplit('.')
-                if len(ls) > 1:
-                    if ls[-1] == '':
-                        line = ls[-2]
-                    else:
-                        line = ls[-1]
+            # Ignore anything that comes before a period.
+            # This lets you change your mind and try again
+            # without erasing your previous attempt which might have some correct digits.
+            ls = line.rsplit('.')
+            if len(ls) > 1:
+                if ls[-1] == '':
+                    line = ls[-2]
+                else:
+                    line = ls[-1]
 
-                # Read a number in reverse digit order if a comma is appended to it.
-                # A backslash would be more intuitive, but not readily available on all language keyboard layouts.
-                ls = line.rsplit(',')
-                if len(ls) > 1:
-                    if ls[-1] == '':
-                        line = ls[-2][::-1]
-                    else:
-                        line = ls[-1]
+            # Read a number in reverse digit order if a comma is appended to it.
+            # A backslash would be more intuitive, but not readily available on all language keyboard layouts.
+            ls = line.rsplit(',')
+            if len(ls) > 1:
+                if ls[-1] == '':
+                    line = ls[-2][::-1]
+                else:
+                    line = ls[-1]
 
-                guessed_result = line.strip().lower()
+            guessed_result = line.strip().lower()
 
-                line = ""
-            except ValueError:
-                print("\nError: Not a valid number in the current base.")
-                continue
+            line = ""
 
     op = opts.op
 
