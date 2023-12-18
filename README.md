@@ -44,10 +44,7 @@ When the program runs without any command line options, it drills you on the tra
 
 **Some sample sessions**
 
-* 5 × 8 = 40, and we answered correctly
-* 4 × 3 = 12, but we simply hit Enter to get the answer
-* 9 × 4 = 36, but we incorrectly entered `46` and the program gave the right answer
-* 7 × 3 would equal 21, but we interrupted the program (usually done by simultaneously pressing the Ctrl key and C)
+First we run it with no options to drill the traditional times table.
 
 ```
 python ./hexer.py
@@ -70,24 +67,35 @@ python ./hexer.py
     ×   3
 ```
 
-Next we use `-x` for hexadecimal, and `-l 3` (lowercase L) to specify 3-digit numbers, and `-o +` to specify addition.
+In the above:
+* 5 × 8 = 40, and we answered correctly
+* 4 × 3 = 12, and we didn't calculate or guess the answer but simply hit Enter
+* 9 × 4 = 36, but we incorrectly entered `46` so the program provided the correct answer
+* 7 × 3 would equal 21, but we interrupted the program (usually done by simultaneously pressing the Ctrl key and C)
 
-* 9d3 + 2a9 = c7c, but we got confused and multiplied instead to get 1a224b (entered as `b422a1,` with comma appended to indicate digits entered in reverse order)
-* bdd + fc8 = 1ba5, and we answered correctly
-* Note that a little subscript "hex" appears each time as a reminder
+---
+
+Next we use `-x` for hexadecimal, and `-l 3` (lowercase L) to specify 3-digit numbers, and `-o +` to specify addition.
 
 ```
 python ./hexer.py -x -l 3 -o +
           9d3
       +   2a9  ₕₑₓ
-b422a1,
+
           ═══
           c7c
 
           bdd
       +   fc8  ₕₑₓ
-1ab5
+5ba1,
 ```
+
+In the above:
+* 9d3 + 2a9 = c7c, and we simply hit Enter to get that answer
+* bdd + fc8 = 1ba5, and we answered correctly (entered as `5ba1,` with comma appended to indicate digits entered in reverse order)
+* Note that a little subscript "hex" appears each time as a reminder
+
+---
 
 Finally we return to base 10, and use `-o /` to specify division.
 
