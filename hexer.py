@@ -232,8 +232,8 @@ group.add_argument('-k', '--allow-trivial', action="store_true",
 group.add_argument('-v', '--verbose', action='count',
                     help='display verbose information about random operands that were rejected because they do not meet the criteria given by MATCH')
 
-parser.add_argument('--show-work-multiplication', action="store_true",
-                    help='"show work" (summands) for multiplication if no answer or a wrong answer was given')
+parser.add_argument('--show-work', action="store_true",
+                    help='"show work" (intermediate summands) whenever the correct answer needs to be displayed because the user did not type it in. Ignored unless --op specifies multiplication and --length is 2 or greater')
 parser.add_argument('--show-subscripts', type=str, default='some', choices=['none','some','all'],
                     help='show none, some, or all of subscripted 2, 4, 8, "ten", "hex" after numbers in bases 2, 4, 8, 10, 16, respectively. Default is "some", which means show all but "ten"')
 
@@ -329,7 +329,7 @@ while True:
                 if 1 in operands:
                     continue
 
-#       print(("\n".join("{:>{}}".format(hex_no0x(op),opts.length) for op in operands)))
+#   print(("\n".join("{:>{}}".format(hex_no0x(op),opts.length) for op in operands)))
     not_the_first: bool = False
     for i, operand in enumerate(operands):
         operand_str = hex_no0x(operand)
@@ -340,9 +340,6 @@ while True:
             print(" ", subscript_coda())
         not_the_first = True
 
-    # Typically just press Enter,
-    # but could also be used to reenter new option strings here
-    # or a guess of the result
     try:
         line = input().strip()
     except EOFError:
@@ -359,6 +356,7 @@ while True:
             except NameError:
                 print("\nThere are no menu items")
             continue
+        # User is entering one of the menu items from hexer_menu.json
         elif line[0] == ":":
             try:
                 try:
@@ -372,11 +370,13 @@ while True:
             except KeyError:
                 print(f"\nError: No such menu item {line} found in {menu_filename}, ignoring")
             continue
+        # User is entering a brand new command-line options string, replacing the old one
         elif line[0] == ">":
             line=line[1:].strip()
             args = shlex.split(line)
             base_opts, opts = do_the_parser(args)
             continue
+        # User is guessing the answer
         else:
             # Ignore anything that comes before a period.
             # This lets you change your mind and try again
@@ -401,18 +401,16 @@ while True:
 
             line = ""
 
-    op = opts.op
-
-    result = hex_no0x(functools.reduce(op, operands))
+    result = hex_no0x(functools.reduce(opts.op, operands))
     if guessed_result != "" and result == guessed_result:
         pass
     else:
-        if opts.show_work_multiplication and op == operator.mul and opts.num_operands == 2 and opts.length != 1 and min(len(hex_no0x(operand)) for operand in operands) != 1:           # "show work" for (most) multiplication
+        if opts.show_work and opts.op == operator.mul and opts.num_operands == 2 and opts.length != 1 and min(len(hex_no0x(operand)) for operand in operands) != 1:           # "show work" for (most) multiplication
             print((2 + opts.length + opts.length - len(operand_str) - 0) * " ", " ", " ", opts.length * "\u2550", sep=" ")
             for i, d in enumerate(reversed(hex_no0x(operands[1]))):
                 summand = hex_no0x(int(d, base_opts.base) * operands[0])
                 print((6 + opts.length + opts.length - len(summand) - i) * " ", summand)
-        print((7 - len(operator_string[op]) + opts.length + opts.length - len(result) - 0) * " ", len(result) * "\u2550", sep=" ")
-        print((7 - len(operator_string[op]) + opts.length + opts.length - len(result) - 0) * " ", result, sep=" ")
+        print((7 - len(operator_string[opts.op]) + opts.length + opts.length - len(result) - 0) * " ", len(result) * "\u2550", sep=" ")
+        print((7 - len(operator_string[opts.op]) + opts.length + opts.length - len(result) - 0) * " ", result, sep=" ")
 
         print("")
