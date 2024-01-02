@@ -157,12 +157,11 @@ def do_the_parser(args):
 
     opts.length = max(opts.length, 1)
 
-    if opts.op is None:
-        opts.op = (operator.mul, 2)
+    if opts.op_tuple is None:
+        opts.op_tuple = (operator.mul, 2)
 
-    # split up the tuple returned by argparse type-checking callable function
-    opts.num_operands = opts.op[1]
-    opts.op = opts.op[0]
+    opts.op = opts.op_tuple[0]
+    opts.num_operands = opts.op_tuple[1]
 
     if len(opts.allowed_digits) == 0:
         if not opts.allow_trivial and base_opts.base > 4 and operator.sub != opts.op:
@@ -209,7 +208,7 @@ base_parser.add_argument('-x', '--hex', action='store_true',
 # use "parents" argument so that -h help gives expected results
 parser = argparse.ArgumentParser(parents=[base_parser], description='Prints random operands (in base 10 by default, or hex, binary, base 4, or octal) to be added, subtracted, multiplied, or divided. Awaits input. Type in the answer to test your arithmetic skills, or just hit Enter to see the answer. Appending a comma to your answer means that the digits are to be read in reverse order of what you typed, i.e., the order in which they are calculated. Usually there are two operands, but addition can have more. For division, operands are chosen so that there is never a remainder.')
 
-parser.add_argument('-o', '--op', action='store', type=arithmetic_operation,
+parser.add_argument('-o', '--op', dest='op_tuple', action='store', type=arithmetic_operation,
                     help='operation to perform: \'*\' or x or . for multiplication, + for addition, - for subtraction, / or ÷ for division; ++ (or +++ or ...) for addition with 3 (or 4 or more, max 52) addends. Default is multiplication')
 parser.add_argument('-l', '--length', default = 1, type=int,
         help='maximum length in digits of each operand (default = 1). May be shorter, since leading zeros are omitted. For subtraction, minuend will have an extra leading 1 if it would otherwise be smaller than subtrahend')
