@@ -85,12 +85,12 @@ python ./hexer.py -x -l 3 -o +
 
           bdd
       +   fc8  ₕₑₓ
-5ba1,
+5ab1,
 ```
 
 In the above:
 * 9d3 + 2a9 = c7c, and we simply hit Enter to get that answer
-* bdd + fc8 = 1ba5, and we answered correctly (entered as `5ba1,` with comma appended to indicate digits entered in reverse order)
+* bdd + fc8 = 1ba5, and we answered correctly (entered as `5ab1,` with comma appended to indicate digits entered in reverse order)
 * Note that a little subscript "hex" appears each time as a reminder
 
 ---
